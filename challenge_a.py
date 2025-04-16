@@ -6,7 +6,7 @@ import string
 PER_STRING_LENGTH = 10                      # Length of generated strings
 MAXIMUM_WHITE_SPACE_COUNT = 10              # Maximum number of spaces before/after alphanumeric strings
 DEFAULT_FILE_SIZE = 10 * 1024 * 1024        # Default file size: 10MB
-DEFAULT_FILE_OUTPUT_PATH = 'output_data.txt'  # Output file path
+DEFAULT_FILE_OUTPUT_PATH = 'challenge_a_output.txt'  # Output file path
 
 
 def generate_random_alphabetical_string(str_length=1):
