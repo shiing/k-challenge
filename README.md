@@ -8,10 +8,9 @@ Activate Virtual Env
 
 ### Setup Dockerfile
 
-Build Dockerfile
+Build Docker Image
 - docker build -t challenge-b .
 
 ### Run Dockerfile
 
-Run Dockerfile
 - docker run --rm -v $(pwd):/app challenge-b
