@@ -19,11 +19,6 @@ REAL_NUMBER_REGEX_PATTERN = r"""
 # Regex pattern to match alphanumeric strings (letters and digits only)
 ALPHANUMERIC_REGEX_PATTERN = r'[A-Za-z0-9]+'
 
-# Compile regex patterns for reuse
-integer_regex = re.compile(INTEGER_REGEX_PATTERN, re.VERBOSE)
-real_number_regex = re.compile(REAL_NUMBER_REGEX_PATTERN, re.VERBOSE)
-alphanumeric_regex = re.compile(ALPHANUMERIC_REGEX_PATTERN, re.VERBOSE)
-
 
 def identify_type(obj):
     """
@@ -55,6 +50,14 @@ input_file = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_INPUT_FILE_PATH
 # Output file path
 output_file = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_OUTPUT_FILE_PATH
 
+
+# Compile regex patterns for reuse
+integer_regex = re.compile(INTEGER_REGEX_PATTERN, re.VERBOSE)
+real_number_regex = re.compile(REAL_NUMBER_REGEX_PATTERN, re.VERBOSE)
+alphanumeric_regex = re.compile(ALPHANUMERIC_REGEX_PATTERN, re.VERBOSE)
+
+
+# Read input file
 with open(input_file, "r") as f:
     data = f.read().strip(",")
 
