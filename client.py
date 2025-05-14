@@ -12,14 +12,14 @@ def init_db():
         CREATE TABLE IF NOT EXISTS msg_ascii (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             payload TEXT NOT NULL,
-            updated_time DATETIME DEFAULT CURRENT_TIMESTAMP
+            updated_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     ''')
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS msg_binary (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             filename TEXT NOT NULL,
-            updated_time DATETIME DEFAULT CURRENT_TIMESTAMP
+            updated_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     ''')
     conn.commit()
@@ -81,20 +81,14 @@ def receive_messages(sock, db_conn):
                 print("Server closed the connection.")
                 break
 
-            print("Received data: ",data)
             message = data.decode('utf-8').strip()
             print(f"Ascii data")
-            print(f"Received: {message}")
             insert_ascii_table(db_conn, message)
             
         except Exception as e:
             print(f"Binary data")
             file_name = save_bytes_data(data, sock)
             insert_binary_table(db_conn, file_name)
-
-           
-
-
 
 
 def run_client():
@@ -109,6 +103,7 @@ def run_client():
     print(f"Host: {host}")
     print(f"Port: {port}")
     print(f"Jwt token: {jwt_token}")
+    print("-------------------------------------")
 
     while True:
         cmd = input("Enter command (connect, talk, stop, exit): ").strip()
@@ -130,7 +125,7 @@ def run_client():
                 # Start receiver thread
                 receiver_thread = threading.Thread(target=receive_messages, args=(client_socket, db_conn), daemon=True)
                 receiver_thread.start()
-                print("Start receive messages\n")
+                print("Start receive messages")
             except Exception as e:
                 print(f"Auth failed: {e}")
 
@@ -151,7 +146,7 @@ def run_client():
             break
 
         else:
-            print("Unknown command")
+            print("Invalid command")
 
 if __name__ == "__main__":
     run_client()
