@@ -18,7 +18,7 @@ def init_db():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS msg_binary (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            filename TEXT NOT NULL,
+            filename VARCHAR(50) NOT NULL,
             updated_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
     ''')
