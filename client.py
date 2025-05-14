@@ -3,6 +3,7 @@ import sqlite3
 import threading
 import time
 import constant
+import os
 
 
 def init_db():
@@ -58,10 +59,10 @@ def save_bytes_data(data, sock):
 
     # Use timestamp to create filename
     ts = time.time()
-    print(f"Filename: file_{ts}.txt")
+    print(f"Filename: {ts}.txt")
 
     # Write payload to file
-    with open(f"file_{ts}.txt", "wb") as f:
+    with open(f"{constant.BINARY_FILE_PATH}/{ts}.txt", "wb") as f:
         f.write(payload)
 
         while payload_count < payload_size:
@@ -69,7 +70,7 @@ def save_bytes_data(data, sock):
             payload_count += len(payload)
             f.write(payload)
 
-    return f"file_{ts}.txt"
+    return f"{constant.BINARY_FILE_PATH}/{ts}.txt"
 
 
 def receive_messages(sock, db_conn):
@@ -95,6 +96,11 @@ def run_client():
     db_conn = init_db()
     client_socket = None
     is_connected = False
+
+    try:
+        os.mkdir(constant.BINARY_FILE_PATH)
+    except FileExistsError:
+        pass
 
     host = constant.HOST
     port = constant.PORT
