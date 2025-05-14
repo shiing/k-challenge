@@ -1,3 +1,5 @@
+import os
+
 # Constants for challenge a
 PER_STRING_LENGTH = 10                      # Length of generated strings
 MAXIMUM_WHITE_SPACE_COUNT = 10              # Maximum number of spaces before/after alphanumeric strings
@@ -22,3 +24,9 @@ REAL_NUMBER_REGEX_PATTERN = r"""
 
 # Regex pattern to match alphanumeric strings (letters and digits only)
 ALPHANUMERIC_REGEX_PATTERN = r'[A-Za-z0-9]+'
+
+
+DB_PATH = "kasagi.db"
+HOST = os.getenv("KASAGI_HOST")
+PORT = os.getenv("KASAGI_PORT")
+JWT_TOKEN = os.getenv("KASAGI_JWT_TOKEN")
