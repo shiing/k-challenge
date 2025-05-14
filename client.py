@@ -2,11 +2,11 @@ import socket
 import sqlite3
 import threading
 import time
+import constant
 
-DB_PATH = "kasagi.db"
 
 def init_db():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(constant.DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS msg_ascii (
@@ -102,9 +102,13 @@ def run_client():
     client_socket = None
     is_connected = False
 
-    host = "35.213.160.152"
-    port = 8080
-    jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzaGlpbmc5ODlAZ21haWwuY29tIiwianRpIjoiNTM0NmU0YWEtODRkOS00MzA5LWIwYzMtMDVjYmY4NDI1ZTAwIiwibmJmIjoxNzQ3MTA3NzM2LCJleHAiOjE3NDgzMTczMzYsImlhdCI6MTc0NzEwNzczNiwiaXNzIjoiUHJvZ3JhbW1pbmdTa2lsbENoYWxsZW5nZSIsImF1ZCI6IkludGVydmlld2VlcyJ9.tLorFtjxW9yzEH9_LrtvSTzJycXfrHuxINqSyHGd5I4"
+    host = constant.HOST
+    port = constant.PORT
+    jwt_token = constant.JWT_TOKEN
+
+    print(f"Host: {host}")
+    print(f"Port: {port}")
+    print(f"Jwt token: {jwt_token}")
 
     while True:
         cmd = input("Enter command (connect, talk, stop, exit): ").strip()
@@ -112,7 +116,7 @@ def run_client():
         if cmd == "connect" and not is_connected:
             try:
                 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                client_socket.connect((host, port))
+                client_socket.connect((host, int(port)))
                 is_connected = True
                 print("Connected to server\n")
             except Exception as e:
