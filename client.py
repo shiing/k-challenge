@@ -26,7 +26,7 @@ def init_db():
     
     return conn
 
-def insert_binary_table(conn, filename):
+def insert_msg_binary_table(conn, filename):
     cursor = conn.cursor()
 
     print(f"sql command: INSERT INTO msg_binary (filename) VALUES (\'{filename}\')")
@@ -34,7 +34,7 @@ def insert_binary_table(conn, filename):
     cursor.execute("INSERT INTO msg_binary (filename) VALUES (?)", (filename,))
     conn.commit()
 
-def insert_ascii_table(conn, payload):
+def insert_msg_ascii_table(conn, payload):
     cursor = conn.cursor()    
 
     print(f"sql command: INSERT INTO msg_ascii (payload) VALUES (\'{payload}\')")
@@ -83,12 +83,12 @@ def receive_messages(sock, db_conn):
 
             message = data.decode('utf-8').strip()
             print(f"Ascii data")
-            insert_ascii_table(db_conn, message)
+            insert_msg_ascii_table(db_conn, message)
             
         except Exception as e:
             print(f"Binary data")
             file_name = save_bytes_data(data, sock)
-            insert_binary_table(db_conn, file_name)
+            insert_msg_binary_table(db_conn, file_name)
 
 
 def run_client():
@@ -105,48 +105,53 @@ def run_client():
     print(f"Jwt token: {jwt_token}")
     print("-------------------------------------")
 
-    while True:
-        cmd = input("Enter command (connect, talk, stop, exit): ").strip()
+    try:
+        while True:
+            cmd = input("Enter command (connect, talk, stop, exit): ").strip()
 
-        if cmd == "connect" and not is_connected:
-            try:
-                client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                client_socket.connect((host, int(port)))
-                is_connected = True
-                print("Connected to server\n")
-            except Exception as e:
-                print(f"Connection failed: {e}")
+            if cmd == "connect" and not is_connected:
+                try:
+                    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    client_socket.connect((host, int(port)))
+                    is_connected = True
+                    print("Connected to server\n")
+                except Exception as e:
+                    print(f"Connection failed: {e}")
 
-        elif cmd == "talk" and is_connected:
-            try:
-                client_socket.sendall(f"AUTH {jwt_token}".encode())
-                print("Auth success")
+            elif cmd == "talk" and is_connected:
+                try:
+                    client_socket.sendall(f"AUTH {jwt_token}".encode())
+                    print("Auth success")
 
-                # Start receiver thread
-                receiver_thread = threading.Thread(target=receive_messages, args=(client_socket, db_conn), daemon=True)
-                receiver_thread.start()
-                print("Start receive messages")
-            except Exception as e:
-                print(f"Auth failed: {e}")
+                    # Start receiver thread
+                    receiver_thread = threading.Thread(target=receive_messages, args=(client_socket, db_conn), daemon=True)
+                    receiver_thread.start()
+                    print("Start receive messages")
+                except Exception as e:
+                    print(f"Auth failed: {e}")
 
 
-        elif cmd == "stop" and is_connected:
-            try:
-                client_socket.sendall("STATUS".encode())
-                print("Stop talking success")
-            except Exception as e:
-                print(f"Stop talking failed: {e}")
+            elif cmd == "stop" and is_connected:
+                try:
+                    client_socket.sendall("STATUS".encode())
+                    print("Stop talking success")
+                except Exception as e:
+                    print(f"Stop talking failed: {e}")
 
-        elif cmd == "exit":
-            if is_connected:
-                client_socket.close()
+            elif cmd == "exit":
+                print("Exiting")
+                break
 
-            db_conn.close()
-            print("Exiting")
-            break
+            else:
+                print("Invalid command")
 
-        else:
-            print("Invalid command")
+    except Exception as e:
+        print(f"Error: {e}")
+    finally:
+        if is_connected:
+            client_socket.close()
+
+        db_conn.close()
 
 if __name__ == "__main__":
     run_client()
