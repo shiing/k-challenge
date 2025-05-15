@@ -31,3 +31,4 @@ HOST = os.getenv("KASAGI_HOST")
 PORT = os.getenv("KASAGI_PORT")
 JWT_TOKEN = os.getenv("KASAGI_JWT_TOKEN")
 BINARY_FILE_PATH = "file"
+TCP_PACKAGE_SIZE = 6

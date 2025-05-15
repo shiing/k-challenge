@@ -5,7 +5,6 @@ import time
 import constant
 import os
 
-
 def init_db():
     conn = sqlite3.connect(constant.DB_PATH, check_same_thread=False)
     cursor = conn.cursor()
@@ -44,21 +43,23 @@ def insert_msg_ascii_table(conn, payload):
     conn.commit()
 
 def parse_ascii_data(data, sock):
-
     end_index = None
     remaining_buffer = None
-    
+
     while True:
-        payload = sock.recv(6)
+        payload = sock.recv(constant.TCP_PACKAGE_SIZE)
 
         try:
             end_index = payload.decode('ascii').find(";")
-        except UnicodeDecodeError:
-            for i in range(0, 6):
+        except Exception:
+            for i in range(0, constant.TCP_PACKAGE_SIZE):
                 try:
                     end_index = payload[i].decode('ascii').find(";")
-                except UnicodeDecodeError:
+                except Exception:
                     continue
+
+                if end_index != -1:
+                    break
         
         if end_index == -1:
             data += payload
@@ -82,13 +83,13 @@ def parse_bytes_data(data, sock):
     print(f"Header: 0x{header:02X}")
 
     # Parse payload size, 5 bytes
-    payload_size_bytes = data[1:6]
+    payload_size_bytes = data[1:constant.TCP_PACKAGE_SIZE]
     payload_size = int.from_bytes(payload_size_bytes, byteorder='little')
     print(f"Payload Size: {payload_size} bytes")
 
     # Parse payload
     payload = data
-    payload_count = len(payload) - 6
+    payload_count = len(payload) - constant.TCP_PACKAGE_SIZE
 
     # Use timestamp to create filename
     ts = time.time()
@@ -99,18 +100,13 @@ def parse_bytes_data(data, sock):
         f.write(payload)
 
         while payload_count < payload_size:
-            payload = sock.recv(6)
+            payload = sock.recv(constant.TCP_PACKAGE_SIZE)
             payload_count += len(payload)
 
             if payload_count >= payload_size:
-                payload_offset = 6 - (payload_count - payload_size)
-                print(f"payload count: {payload_count}")
-                print(f"payload size: {payload_size}")
-                print(f"payload: {payload}")
+                payload_offset = constant.TCP_PACKAGE_SIZE - (payload_count - payload_size)
                 f.write(payload[:payload_offset])
-                print(f"payload write: {payload[:payload_offset]}")
                 remaining_buffer = payload[payload_offset:]
-                print(f"remaining_buffer: {remaining_buffer}")
             else:
                 f.write(payload)
 
@@ -120,33 +116,34 @@ def parse_bytes_data(data, sock):
 def receive_messages(sock, db_conn):
     current_buffer = None
     is_binary = None
-    while True:
-        current_data_type = None
-        data = None
 
-        if current_data_type is None:
-            data = sock.recv(6)
-        elif current_buffer is not None and len(current_buffer) > 0:
-            data = current_buffer
+    try:
+        while True:
+            current_data_type = None
+            data = None
 
-        print(f"Data: {data}")
+            if current_data_type is None:
+                data = sock.recv(constant.TCP_PACKAGE_SIZE)
+            elif current_buffer is not None and len(current_buffer) > 0:
+                data = current_buffer
 
-        try:
-            data.decode('ascii')
-            is_binary = False
-        except UnicodeDecodeError:
-            is_binary = True
+            try:
+                data.decode('ascii')
+                is_binary = False
+            except UnicodeDecodeError:
+                is_binary = True
 
-        if is_binary == False and data.decode('ascii')[0] == '$':
-            current_data_type = "ascii"
-            ascii_data, current_buffer = parse_ascii_data(data, sock)
-            insert_msg_ascii_table(db_conn, ascii_data)
-        else:
-            current_data_type = "binary"
-            filename, current_buffer = parse_bytes_data(data, sock)
-            insert_msg_binary_table(db_conn, filename)
-
-                
+            if is_binary == False and data.decode('ascii')[0] == '$':
+                current_data_type = "ascii"
+                ascii_data, current_buffer = parse_ascii_data(data, sock)
+                insert_msg_ascii_table(db_conn, ascii_data)
+            else:
+                current_data_type = "binary"
+                filename, current_buffer = parse_bytes_data(data, sock)
+                insert_msg_binary_table(db_conn, filename)
+    except Exception as e:
+        print("Exit receive messages")
+        
 
 
 def run_client():
@@ -163,6 +160,7 @@ def run_client():
     port = constant.PORT
     jwt_token = constant.JWT_TOKEN
 
+    print("-------------------------------------")
     print(f"Host: {host}")
     print(f"Port: {port}")
     print(f"Jwt token: {jwt_token}")
