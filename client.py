@@ -28,17 +28,11 @@ def init_db():
 
 def insert_msg_binary_table(conn, filename):
     cursor = conn.cursor()
-
-    # print(f"sql command: INSERT INTO msg_binary (filename) VALUES (\'{filename}\')")
-
     cursor.execute("INSERT INTO msg_binary (filename) VALUES (?)", (filename,))
     conn.commit()
 
 def insert_msg_ascii_table(conn, payload):
-    cursor = conn.cursor()    
-
-    # print(f"sql command: INSERT INTO msg_ascii (payload) VALUES (\'{payload}\')")
-
+    cursor = conn.cursor()
     cursor.execute("INSERT INTO msg_ascii (payload) VALUES (?)", (payload,))
     conn.commit()
 
@@ -67,8 +61,7 @@ def parse_ascii_data(data, sock):
 
         data += payload[:end_index + 1]
         remaining_buffer = payload[end_index + 1:]
-        # print(f"parse_ascii_data: {data}")
-        # print(f"remaining_buffer: {remaining_buffer}")
+
         break
 
     return data, remaining_buffer
